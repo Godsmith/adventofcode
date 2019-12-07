@@ -1,23 +1,33 @@
-from enum import Enum
-from typing import List, Optional
+from collections import deque
+from typing import List, Union
 from operator import add, mul, eq, ne, lt
 
 
 class Intcode(list):
-    def __init__(self, list_: List[int], input_: Optional[int] = None):
+    def __init__(self, list_: List[int]):
         super().__init__(list_)
-        self.input = input_
         self.output = None
+        self._inputs = deque([])
 
     def step(self, index) -> int:
         opcode = str(self[index]).zfill(2)[-2:]
         return instructions[opcode](self, index).execute()
 
-    def run(self):
+    def run(self, inputs: Union[int, List[int], None]=None):
+        if inputs is None:
+            inputs = []
+        if type(inputs) == int:
+            inputs = [inputs]
+        for input_ in inputs:
+            self._inputs.append(input_)
+        self._inputs = deque(inputs)
         index = 0
         while index >= 0:
             index = self.step(index)
         return self
+
+    def next_input(self):
+        return self._inputs.popleft()
 
 
 class Instruction:
@@ -79,7 +89,7 @@ class Input(Instruction):
     LENGTH = 2
 
     def _execute(self):
-        self[0] = self.program.input
+        self[0] = self.program.next_input()
 
 
 class Output(Input):
