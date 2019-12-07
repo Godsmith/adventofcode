@@ -4,8 +4,9 @@ from operator import add, mul, eq, ne, lt
 
 
 class Intcode(list):
-    def __init__(self, list_: List[int]):
-        super().__init__(list_)
+    def __init__(self, program: List[int]):
+        super().__init__(program)
+        self._original_program = list(program)
         self.output = None
         self._inputs = deque([])
 
@@ -14,13 +15,14 @@ class Intcode(list):
         return instructions[opcode](self, index).execute()
 
     def run(self, inputs: Union[int, List[int], None]=None):
+        self[:] = list(self._original_program)
         if inputs is None:
             inputs = []
         if type(inputs) == int:
             inputs = [inputs]
         for input_ in inputs:
             self._inputs.append(input_)
-        self._inputs = deque(inputs)
+
         index = 0
         while index >= 0:
             index = self.step(index)
