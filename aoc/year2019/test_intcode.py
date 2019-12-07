@@ -53,14 +53,6 @@ def test_equals():
     assert i.run(7) == 0
 
 
-def test_program_is_reset_between_runs():
-    i = Intcode([1, 2, 2, 0, 99])
-    i.run()
-    assert i[:] == [4, 2, 2, 0, 99]
-    i.run()
-    assert i[:] == [4, 2, 2, 0, 99]
-
-
 class TestInstruction:
     def test_mode_of_parameter(self):
         assert Instruction([1099], 0)._mode_of_parameter(0) == 0

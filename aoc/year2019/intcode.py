@@ -8,8 +8,10 @@ class Intcode(list):
         super().__init__(program)
         self._original_program = list(program)
         self.output = None
+        self.last_output = None
         self._inputs = deque([])
         self.index = 0
+        self.finished = False
 
     def step(self, index) -> int:
         opcode = str(self[index]).zfill(2)[-2:]
@@ -29,11 +31,12 @@ class Intcode(list):
         for input_ in inputs:
             self._inputs.append(input_)
 
-        while self.index >= 0:
+        while not self.finished:
             self.index = self.step(self.index)
             if self.output is not None:
+                self.last_output = self.output
                 return self.output
-        return
+        return self.last_output
 
     def next_input(self):
         return self._inputs.popleft()
@@ -131,7 +134,8 @@ class Equals(LessThan):
 
 
 class Halt(Instruction):
-    LENGTH = -10000000
+    def _execute(self):
+        self.program.finished = True
 
 
 instructions = {'01': Add, '02': Mul, '03': Input, '04': Output, '05': JumpIfTrue,
