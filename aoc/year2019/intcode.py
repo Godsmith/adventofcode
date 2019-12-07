@@ -1,5 +1,5 @@
 from collections import deque
-from typing import List, Union
+from typing import List, Union, Generator
 from operator import add, mul, eq, ne, lt
 
 
@@ -9,13 +9,19 @@ class Intcode(list):
         self._original_program = list(program)
         self.output = None
         self._inputs = deque([])
+        self.index = 0
 
     def step(self, index) -> int:
         opcode = str(self[index]).zfill(2)[-2:]
         return instructions[opcode](self, index).execute()
 
-    def run(self, inputs: Union[int, List[int], None]=None):
+    def run(self, inputs: Union[int, List[int], None] = None):
         self[:] = list(self._original_program)
+        self.index = 0
+        return self.next_output(inputs)
+
+    def next_output(self, inputs: Union[int, List[int], None] = None):
+        self.output = None
         if inputs is None:
             inputs = []
         if type(inputs) == int:
@@ -23,11 +29,11 @@ class Intcode(list):
         for input_ in inputs:
             self._inputs.append(input_)
 
-        index = 0
-        while index >= 0:
-            index = self.step(index)
-
-        return self.output
+        while self.index >= 0:
+            self.index = self.step(self.index)
+            if self.output is not None:
+                return self.output
+        return
 
     def next_input(self):
         return self._inputs.popleft()

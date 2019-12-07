@@ -8,7 +8,7 @@ def test_add():
 
 
 def test_mul():
-    i =  Intcode([2, 0, 4, 0, 99])
+    i = Intcode([2, 0, 4, 0, 99])
     i.run()
     assert i[:] == [198, 0, 4, 0, 99]
 
@@ -16,6 +16,12 @@ def test_mul():
 def test_input_output():
     i = Intcode([3, 0, 4, 0, 99])
     assert i.run([42]) == 42
+
+
+def test_multiple_inputs_and_outputs():
+    i = Intcode([3, 10, 4, 10, 3, 10, 4, 0, 99, 0, 0])
+    assert i.next_output(5) == 5
+    assert i.next_output(5) == 3
 
 
 def test_immediate_mode():
