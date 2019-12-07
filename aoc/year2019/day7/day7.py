@@ -8,7 +8,7 @@ def output(program, phase_settings):
     intcode = Intcode(program)
     signal = 0
     for phase_setting in phase_settings:
-        signal = intcode.run([phase_setting, signal]).output
+        signal = intcode.run([phase_setting, signal])
     return signal
 
 def find_max_output(program):

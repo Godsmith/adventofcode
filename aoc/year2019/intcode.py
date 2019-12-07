@@ -26,7 +26,8 @@ class Intcode(list):
         index = 0
         while index >= 0:
             index = self.step(index)
-        return self
+
+        return self.output
 
     def next_input(self):
         return self._inputs.popleft()
