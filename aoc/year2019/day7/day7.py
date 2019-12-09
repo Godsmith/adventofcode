@@ -35,9 +35,10 @@ def feedback_output(program, phase_settings):
     amplifiers = [Amplifier(program, phase_setting) for phase_setting in phase_settings]
     signal = 0
     for amplifier in cycle(amplifiers):
+        last_signal = signal
         signal = amplifier.next_output(signal)
-        if all(amplifier.finished for amplifier in amplifiers):
-            break
+        if signal is None:
+            return last_signal
     return signal
 
 

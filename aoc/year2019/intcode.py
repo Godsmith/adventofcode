@@ -1,29 +1,39 @@
-from collections import deque
-from typing import List, Union, Generator
+from collections import deque, defaultdict
+from typing import List, Union, Generator, Optional, Tuple
 from operator import add, mul, eq, ne, lt
 
 
-class Intcode(list):
+class Intcode:
     def __init__(self, program: List[int]):
-        super().__init__(program)
+        self.program = defaultdict(lambda: 0)
         self._original_program = list(program)
-        self.output = None
-        self.last_output = None
+        self._reset_program()
         self._inputs = deque([])
         self.index = 0
         self.finished = False
+        self.relative_base = 0
 
-    def step(self, index) -> int:
+    def __getitem__(self, item):
+        return self.program[item]
+
+    def __setitem__(self, key, value):
+        self.program[key] = value
+
+    def _reset_program(self):
+        for i, value in enumerate(self._original_program):
+            self.program[i] = value
+
+    def step(self, index) -> Tuple[int, Optional[int]]:
         opcode = str(self[index]).zfill(2)[-2:]
         return instructions[opcode](self, index).execute()
 
     def run(self, inputs: Union[int, List[int], None] = None):
-        self[:] = list(self._original_program)
+        self._reset_program()
         self.index = 0
         return self.next_output(inputs)
 
     def next_output(self, inputs: Union[int, List[int], None] = None):
-        self.output = None
+        """ Returns the next integer output, or None if it is at the end."""
         if inputs is None:
             inputs = []
         if type(inputs) == int:
@@ -32,14 +42,24 @@ class Intcode(list):
             self._inputs.append(input_)
 
         while not self.finished:
-            self.index = self.step(self.index)
-            if self.output is not None:
-                self.last_output = self.output
-                return self.output
-        return self.last_output
+            self.index, output = self.step(self.index)
+            if output is not None:
+                return output
+
+    def all_outputs(self, input_to_first_iteration: Optional[int] = None):
+        outputs = []
+        output = self.next_output(input_to_first_iteration)
+        while output is not None:
+            outputs.append(output)
+            output = self.next_output()
+        return outputs
 
     def next_input(self):
         return self._inputs.popleft()
+
+    def to_list(self):
+        """Only makes sense for consecutive programs"""
+        return [value for value in self.program.values()]
 
 
 class Instruction:
@@ -47,15 +67,16 @@ class Instruction:
 
     POSITION = 0
     IMMEDIATE = 1
+    RELATIVE = 2
 
     def __init__(self, program, index):
         self.program = program
         self.index = index
 
-    def execute(self):
+    def execute(self) -> (int, Tuple[int, Optional[int]]):
         """ Modifies the state and returns the next index to execute"""
-        self._execute()
-        return self._next_index()
+        output = self._execute()
+        return self._next_index(), output
 
     def _next_index(self):
         return self.index + self.LENGTH
@@ -69,11 +90,19 @@ class Instruction:
             return self.program[self._value_of(parameter_index)]
         elif mode == Instruction.IMMEDIATE:
             return self._value_of(parameter_index)
+        elif mode == Instruction.RELATIVE:
+            return self.program[
+                self._value_of(parameter_index) + self.program.relative_base]
         else:
             raise ValueError(f"Invalid parameter mode {mode}.")
 
     def __setitem__(self, parameter_index, value):
-        self.program[self._value_of(parameter_index)] = value
+        mode = self._mode_of_parameter(parameter_index)
+        if mode == Instruction.POSITION:
+            self.program[self._value_of(parameter_index)] = value
+        elif mode == Instruction.RELATIVE:
+            self.program[
+                self._value_of(parameter_index) + self.program.relative_base] = value
 
     def _value_of(self, parameter_index):
         return self.program[self.index + parameter_index + 1]
@@ -81,7 +110,7 @@ class Instruction:
     def _mode_of_parameter(self, parameter_index):
         return int(str(self.program[self.index]).zfill(6)[-(parameter_index + 3)])
 
-    def _execute(self):
+    def _execute(self) -> Optional[int]:
         pass
 
 
@@ -106,7 +135,7 @@ class Input(Instruction):
 
 class Output(Input):
     def _execute(self):
-        self.program.output = self[0]
+        return self[0]
 
 
 class JumpIfTrue(Instruction):
@@ -133,6 +162,13 @@ class Equals(LessThan):
     OPERATOR = eq
 
 
+class AdjustRelativeBase(Instruction):
+    LENGTH = 2
+
+    def _execute(self):
+        self.program.relative_base += self[0]
+
+
 class Halt(Instruction):
     def _execute(self):
         self.program.finished = True
@@ -140,4 +176,4 @@ class Halt(Instruction):
 
 instructions = {'01': Add, '02': Mul, '03': Input, '04': Output, '05': JumpIfTrue,
                 '06': JumpIfFalse, '07': LessThan, '08': Equals,
-                '99': Halt}
+                '09': AdjustRelativeBase, '99': Halt}
