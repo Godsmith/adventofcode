@@ -3,19 +3,19 @@ from aoc.year2019.intcode import Intcode, Instruction
 
 def test_add():
     i = Intcode([1, 2, 2, 0, 99])
-    i.run()
+    i.next_output()
     assert i.to_list() == [4, 2, 2, 0, 99]
 
 
 def test_mul():
     i = Intcode([2, 0, 4, 0, 99])
-    i.run()
+    i.next_output()
     assert i.to_list() == [198, 0, 4, 0, 99]
 
 
 def test_input_output():
     i = Intcode([3, 0, 4, 0, 99])
-    assert i.run([42]) == 42
+    assert i.next_output([42]) == 42
 
 
 def test_multiple_inputs_and_outputs():
@@ -26,31 +26,37 @@ def test_multiple_inputs_and_outputs():
 
 def test_immediate_mode():
     i = Intcode([1002, 4, 3, 4, 33])
-    i.run()
+    i.next_output()
     assert i.to_list() == [1002, 4, 3, 4, 99]
 
 
 def test_jump_if_false():
-    i = Intcode([3, 12, 6, 12, 15, 1, 13, 14, 13, 4, 13, 99, -1, 0, 1, 9])
-    assert i.run(0) == 0
-    assert i.run(2) == 1
+    inputs = [3, 12, 6, 12, 15, 1, 13, 14, 13, 4, 13, 99, -1, 0, 1, 9]
+    i = Intcode(inputs)
+    assert i.next_output(0) == 0
+    i = Intcode(inputs)
+    assert i.next_output(2) == 1
 
 
 def test_jump_if_true():
     i = Intcode([3, 3, 1105, -1, 9, 1101, 0, 0, 12, 4, 12, 99, 1])
-    assert i.run(0) == 0
+    assert i.next_output(0) == 0
 
 
 def test_less_than():
-    i = Intcode([3, 9, 7, 9, 10, 9, 4, 9, 99, -1, 8])
-    assert i.run(7) == 1
-    assert i.run(8) == 0
+    inputs = [3, 9, 7, 9, 10, 9, 4, 9, 99, -1, 8]
+    i = Intcode(inputs)
+    assert i.next_output(7) == 1
+    i = Intcode(inputs)
+    assert i.next_output(8) == 0
 
 
 def test_equals():
-    i = Intcode([3, 3, 1108, -1, 8, 3, 4, 3, 99])
-    assert i.run(8) == 1
-    assert i.run(7) == 0
+    inputs = [3, 3, 1108, -1, 8, 3, 4, 3, 99]
+    i = Intcode(inputs)
+    assert i.next_output(8) == 1
+    i = Intcode(inputs)
+    assert i.next_output(7) == 0
 
 
 def test_relative_base():

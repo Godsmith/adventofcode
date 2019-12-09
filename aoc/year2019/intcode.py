@@ -6,8 +6,8 @@ from operator import add, mul, eq, ne, lt
 class Intcode:
     def __init__(self, program: List[int]):
         self.program = defaultdict(lambda: 0)
-        self._original_program = list(program)
-        self._reset_program()
+        for i, value in enumerate(program):
+            self.program[i] = value
         self._inputs = deque([])
         self.index = 0
         self.finished = False
@@ -19,18 +19,9 @@ class Intcode:
     def __setitem__(self, key, value):
         self.program[key] = value
 
-    def _reset_program(self):
-        for i, value in enumerate(self._original_program):
-            self.program[i] = value
-
-    def step(self, index) -> Tuple[int, Optional[int]]:
+    def _step(self, index) -> Tuple[int, Optional[int]]:
         opcode = str(self[index]).zfill(2)[-2:]
         return instructions[opcode](self, index).execute()
-
-    def run(self, inputs: Union[int, List[int], None] = None):
-        self._reset_program()
-        self.index = 0
-        return self.next_output(inputs)
 
     def next_output(self, inputs: Union[int, List[int], None] = None):
         """ Returns the next integer output, or None if it is at the end."""
@@ -42,7 +33,7 @@ class Intcode:
             self._inputs.append(input_)
 
         while not self.finished:
-            self.index, output = self.step(self.index)
+            self.index, output = self._step(self.index)
             if output is not None:
                 return output
 
