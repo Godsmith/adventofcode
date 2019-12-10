@@ -14,3 +14,7 @@ def ints(s: str) -> List[int]:
 def csv_rows(s: str) -> List[List[str]]:
     """Returns a list of list of strings from comma-separated rows"""
     return [row.split(',') for row in s.split('\n')]
+
+
+def rows(s: str) -> List[str]:
+    return s.split('\n')
