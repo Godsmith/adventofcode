@@ -1,6 +1,7 @@
-from math import gcd
+from collections import defaultdict
+from math import gcd, tan, atan, pi, atan2
 from typing import List, Tuple
-from itertools import combinations
+from itertools import combinations, cycle
 
 from aocd import data
 from aoc.utils import rows
@@ -48,14 +49,42 @@ class Starfield:
         return detected_counts[max(detected_counts)], max(detected_counts)
 
     @staticmethod
-    def _common_divisors(a, b):
-        if a == 0:
-            yield from range(2, abs(b) + 1)
-        if b == 0:
-            yield from range(2, abs(a) + 1)
-        for i in range(2, min(abs(a), abs(b)) + 1):
-            if a % i == b % i == 0:
-                yield i
+    def angle_to(giant_laser, asteroid):
+        a = atan2((asteroid[1] - giant_laser[1]), (asteroid[0] - giant_laser[0]))
+        b = a + pi / 2
+        if b < 0:
+            return b + 2 * pi
+        return b
+
+    def destroy(self, giant_laser, count):
+
+        asteroids_from_angle = defaultdict(list)
+        for asteroid in self.asteroids:
+            angle = self.angle_to(giant_laser, asteroid)
+            asteroids_from_angle[angle].append(asteroid)
+        i = 0
+        angles = cycle(sorted(asteroids_from_angle.keys()))
+        while i < count:
+            angle = next(angles)
+            if asteroids_from_angle[angle]:
+                i += 1
+                yield self.remove_closest_to(giant_laser, asteroids_from_angle[angle])
+
+    def remove_closest_to(self, giant_laser: Tuple[int, int],
+                          asteroids: List[Tuple[int, int]]) -> Tuple[int, int]:
+        min_distance = 10000
+        closest_asteroid = None
+        for asteroid in asteroids:
+            d = self.distance_between(giant_laser, asteroid)
+            if d < min_distance:
+                min_distance = d
+                closest_asteroid = asteroid
+        asteroids.remove(closest_asteroid)
+        return closest_asteroid
+
+    @staticmethod
+    def distance_between(a, b):
+        return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
 
 def main():
@@ -87,7 +116,10 @@ def main():
 #.####.#..#.#.##.######.#..
 .#.#####.##...#...#.##...#."""
     starfield = Starfield(s)
-    print(starfield.best_location())
+    station, count = starfield.best_location()
+    print(count)
+    asteroid = list(starfield.destroy(station, 200))[-1]
+    print(asteroid[0] * 100 + asteroid[1])
 
 
 if __name__ == '__main__':
