@@ -62,6 +62,27 @@ def main():
         robot.step()
     print(robot.number_of_panels_painted)
 
+    robot = PaintRobot(ints(data), 1)
+    while not robot.finished:
+        robot.step()
+    print_panels(robot)
+
+
+def print_panels(robot):
+    xs = [key[0] for key in robot.panels.keys()]
+    ys = [key[1] for key in robot.panels.keys()]
+    for y in range(min(ys), max(ys) + 1):
+        for x in range(min(xs), max(xs) + 1):
+            if (x, y) in robot.panels:
+                value = robot.panels[(x, y)]
+            else:
+                value = 0
+            if value == 1:
+                print("#", end="")
+            else:
+                print(" ", end="")
+        print()
+
 
 if __name__ == '__main__':
     main()
