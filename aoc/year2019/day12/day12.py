@@ -1,4 +1,5 @@
 import re
+from math import sqrt, gcd
 from typing import Tuple
 
 from aocd import data
@@ -19,8 +20,8 @@ class Moon:
         if "pos=" in s:
             pattern = "pos=<x=(.*), y=(.*), z=(.*)>, vel=<x=(.*), y=(.*), z=(.*)>"
             groups = re.match(pattern, s).groups()
-            pos = tuple(map( int, groups[0:3]))
-            vel = tuple(map( int, groups[3:6]))
+            pos = tuple(map(int, groups[0:3]))
+            vel = tuple(map(int, groups[3:6]))
             return cls(pos, vel)
         else:
             pattern = "<x=(.*), y=(.*), z=(.*)>"
@@ -56,8 +57,9 @@ class Simulation:
         for moon in self.moons:
             moon.move()
 
-    def _delta_vel(self, pos1: Tuple[int, int, int], pos2: Tuple[int, int, int]) -> Tuple[
-        int, int, int]:
+    def _delta_vel(self, pos1: Tuple[int, int, int], pos2: Tuple[int, int, int]) -> \
+            Tuple[
+                int, int, int]:
         return tuple(self._sign_of_difference(pos2[i], pos1[i]) for i in range(3))
 
     @staticmethod
@@ -66,7 +68,6 @@ class Simulation:
             return 0
         else:
             return int((a - b) / abs(a - b))
-
 
     @property
     def energy(self):
@@ -77,11 +78,36 @@ class Simulation:
             self.step()
         return self.energy
 
+    def first_repeating(self, i):
+        count_from_pos_vel = {}
+        count = 0
+        while True:
+            pos_and_vel = tuple((moon.pos[i], moon.vel[i]) for moon in
+                                self.moons)
+            if pos_and_vel in count_from_pos_vel:
+                return count
+
+            count_from_pos_vel[pos_and_vel] = count
+            count += 1
+            self.step()
+
+    @property
+    def cycle_length(self):
+        x = self.first_repeating(0)
+        y = self.first_repeating(1)
+        z = self.first_repeating(2)
+        common_divisor = gcd(x, gcd(y, z))
+
+        return int(x * y * z / pow(common_divisor, 3))
+
 
 def main():
     moons = list(map(Moon.from_string, rows(data)))
     simulation = Simulation(moons)
     print(simulation.energy_after_steps(1000))
+
+    simulation = Simulation(moons)
+    print(simulation.cycle_length)
 
 
 if __name__ == '__main__':

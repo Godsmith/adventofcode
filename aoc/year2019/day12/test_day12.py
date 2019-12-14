@@ -1,3 +1,5 @@
+from math import gcd
+
 from aoc.year2019.day12.day12 import Moon, Simulation
 
 
@@ -41,3 +43,13 @@ pos=<x= 2, y= 0, z= 4>, vel=<x= 1, y=-1, z=-1>""".split('\n')
 pos=<x=3, y=-7, z=-4>, vel=<x=1, y=3, z=3>
 pos=<x=1, y=-7, z=5>, vel=<x=-3, y=1, z=-3>
 pos=<x=2, y=2, z=0>, vel=<x=-1, y=-3, z=1>"""
+
+    def test_cycle_length(self):
+        moon_strings = """<x=-1, y=0, z=2>
+<x=2, y=-10, z=-7>
+<x=4, y=-8, z=8>
+<x=3, y=5, z=-1>""".split("\n")
+        moons = list(map(Moon.from_string, moon_strings))
+        simulation = Simulation(moons)
+        assert simulation.cycle_length == 2772
+
