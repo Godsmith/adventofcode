@@ -3,7 +3,7 @@ from typing import List, Tuple
 
 from aocd import data
 
-from aoc.utils import ints, sign_of_difference
+from aoc.utils import ints, sign_of_difference, grouper
 from aoc.year2019.intcode import Intcode
 
 PADDLE_Y = 18
@@ -30,23 +30,14 @@ class Screen:
         return ''.join(strings)
 
     def input(self, input_):
-        while True:
-            self._intcode.set_input(input_)
-            x = self._intcode.next_output()
-            y = self._intcode.next_output()
-            tile = self._intcode.next_output()
-            if tile is None:
-                self.game_over = True
-                break
+        outputs = self._intcode.run_to_next_input(input_)
+        for x, y, tile in grouper(outputs, 3):
             self._screen[(x, y)] = tile
-            print("tile")
             if tile == 4:
-                print("ball!")
                 self._last_ball_position = self._ball_position
                 self._ball_position = (x, y)
-            if tile == 3:
-                print("paddle!")
-                break
+            if self._ball_position[1] == 19:
+                self.game_over = True
 
     @property
     def block_count(self):
@@ -69,7 +60,11 @@ class Screen:
 
     @property
     def target_paddle_position(self):
-        if self._ball_position[0] - self._last_ball_position[0] > 1:
+        """If the ball is just above the paddle, hold still. Otherwise, try to be
+        one tile ahead of the current trajectory."""
+        if self._ball_position[1] == 17:
+            return self._ball_position[0]
+        if self._ball_position[0] - self._last_ball_position[0] > 0:
             # moving right
             return self._ball_position[0] + 1
         else:
@@ -80,6 +75,8 @@ class Screen:
         return self._screen[(-1, 0)]
 
 
+DEBUG = False
+
 
 def main():
     # part 1
@@ -88,7 +85,6 @@ def main():
     print(screen.block_count)
 
     # part 2
-
     play_for_free_instructions = list(ints(data))
     play_for_free_instructions[0] = 2
     screen = Screen(play_for_free_instructions)
@@ -96,22 +92,18 @@ def main():
     while True:
         input_ = sign_of_difference(screen.target_paddle_position, screen.paddle_x)
         screen.input(input_)
-        print(screen)
-        print(
-            f"ball_x: {screen.ball_position}, "
-            f"paddle_x: {screen.paddle_x}, "
-            f"input: {input_}")
+        if DEBUG:
+            print(screen)
+            print(
+                f"ball_x: {screen.ball_position}, "
+                f"paddle_x: {screen.paddle_x}, "
+                f"target_paddle_position: {screen.target_paddle_position}, "
+                f"input: {input_}")
         if screen.block_count == 0:
             break
         if screen.game_over:
             break
     print(screen.score)
-
-
-def target_paddle_position(ball_position, last_ball_position):
-    # If the ball is moving upwards, just track the ball position
-    if ball_position[1] < last_ball_position[1]:
-        return ball_position[0]
 
 
 if __name__ == '__main__':
