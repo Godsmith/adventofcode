@@ -1,13 +1,5 @@
 from aocd import data
-from itertools import zip_longest
-
-
-def grouper(iterable, n, fillvalue=None):
-    """Collect data into fixed-length chunks or blocks
-    >>> list(grouper('ABCDEFG', 3, 'x'))
-    [('A', 'B', 'C'), ('D', 'E', 'F'), ('G', 'x', 'x')]"""
-    args = [iter(iterable)] * n
-    return zip_longest(fillvalue=fillvalue, *args)
+from aoc.utils import grouper
 
 
 def main():

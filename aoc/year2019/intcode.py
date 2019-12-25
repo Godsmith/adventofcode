@@ -56,7 +56,7 @@ class Intcode:
         return [value for value in self.program.values()]
 
     def run_to_next_input(self, input_=None):
-        if input_:
+        if input_ is not None:
             self.set_input(input_)
         out = []
         while True:
