@@ -48,6 +48,9 @@ class Intcode:
     def next_input(self):
         return self._inputs.popleft()
 
+    def set_input(self, input_):
+        self._inputs = deque([input_])
+
     def to_list(self):
         """Only makes sense for consecutive programs"""
         return [value for value in self.program.values()]

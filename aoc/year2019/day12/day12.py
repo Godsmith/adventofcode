@@ -4,7 +4,7 @@ from typing import Tuple
 
 from aocd import data
 
-from aoc.utils import rows
+from aoc.utils import rows, sign_of_difference
 
 
 class Moon:
@@ -60,14 +60,7 @@ class Simulation:
     def _delta_vel(self, pos1: Tuple[int, int, int], pos2: Tuple[int, int, int]) -> \
             Tuple[
                 int, int, int]:
-        return tuple(self._sign_of_difference(pos2[i], pos1[i]) for i in range(3))
-
-    @staticmethod
-    def _sign_of_difference(a, b):
-        if a == b:
-            return 0
-        else:
-            return int((a - b) / abs(a - b))
+        return tuple(sign_of_difference(pos2[i], pos1[i]) for i in range(3))
 
     @property
     def energy(self):

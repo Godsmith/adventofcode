@@ -18,3 +18,18 @@ def csv_rows(s: str) -> List[List[str]]:
 
 def rows(s: str) -> List[str]:
     return s.split('\n')
+
+
+def sign_of_difference(a, b):
+    """
+    >>> sign_of_difference(10, 5)
+    1
+    >>> sign_of_difference(5, 10)
+    -1
+    >>> sign_of_difference(5, 5)
+    0
+    """
+    if a == b:
+        return 0
+    else:
+        return int((a - b) / abs(a - b))
