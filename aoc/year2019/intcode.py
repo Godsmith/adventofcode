@@ -55,6 +55,18 @@ class Intcode:
         """Only makes sense for consecutive programs"""
         return [value for value in self.program.values()]
 
+    def run_to_next_input(self, input_=None):
+        if input_:
+            self.set_input(input_)
+        out = []
+        while True:
+            try:
+                out.append(self.next_output())
+            except IndexError:
+                return out
+            if self.finished:
+                return out[:-1]
+
 
 class Instruction:
     LENGTH = 0

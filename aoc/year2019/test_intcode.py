@@ -69,6 +69,29 @@ def test_203():
     i = Intcode(inputs)
     assert i.all_outputs(5) == [5]
 
+class TestRunToNextInput():
+
+    def test_single_output(self):
+        i = Intcode([4, 0, 3, 0])
+        assert i.run_to_next_input() == [4]
+
+    def test_halt(self):
+        i = Intcode([4, 0, 99])
+        assert i.run_to_next_input() == [4]
+
+    def test_two_steps(self):
+        i = Intcode([4, 0, 3, 0, 4, 0, 3, 0])
+        assert i.run_to_next_input() == [4]
+        assert i.run_to_next_input(5) == [5]
+
+    def test_not_providing_output_does_nothing_steps(self):
+        i = Intcode([4, 0, 3, 0, 4, 0, 3, 0])
+        assert i.run_to_next_input() == [4]
+        assert i.run_to_next_input() == []
+        assert i.run_to_next_input(5) == [5]
+
+
+
 
 class TestInstruction:
     def test_mode_of_parameter(self):
