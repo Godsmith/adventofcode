@@ -66,10 +66,30 @@ def ore_needed_for_fuel(fuel_amount, recipes: Dict[str, Recipe]):
             reserves[ingredient] = leftover_amount
     return ore_needed
 
+def bsearch(f, target, low, high):
+    """ Given a function f(x), return the value x for which f(x) is closest to
+    but does not exceed target. x is between low and high."""
+    if abs(low - high) <= 1:
+        if f(high) == target:
+            return high
+        return low
+    low_value = f(low)
+    high_value = f(high)
+    middle = (low + high) // 2
+    #print(f"f({low}) == {low_value}, f({high}) == {high_value}")
+    if abs(low_value - target) < abs(high_value - target):
+        return bsearch(f, target, low, middle)
+    else:
+        return bsearch(f, target, middle, high)
+
+
 
 def main():
     reactions = reactions_from_data(data)
     print(ore_needed_for_fuel(1, reactions))
+
+    f = lambda x: ore_needed_for_fuel(x, reactions)
+    print(bsearch(f, 1000000000000, 1, 1000000000))
 
 
 if __name__ == '__main__':
