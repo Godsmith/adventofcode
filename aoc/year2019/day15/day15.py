@@ -100,6 +100,29 @@ def main():
                         adjacent=[(0, -1), (0, 1), (-1, 0), (1, 0)])
     print(len(path) - 1)
 
+    area = droid.area
+    edges = {droid.oxygen_position}
+    visited = set()
+    minutes = -1  # Since nothing will happen the last iteration
+    while edges:
+        minutes += 1
+        new_edges = set()
+        for edge in edges:
+            visited.add(edge)
+            for adjacent_position in adjacent_positions(edge):
+                if adjacent_position in visited or area[adjacent_position] == '#':
+                    continue
+                new_edges.add(adjacent_position)
+        edges = new_edges
+    print(minutes)
+
+
+def adjacent_positions(position):
+    return [(position[0], position[1] - 1),
+            (position[0], position[1] + 1),
+            (position[0] - 1, position[1]),
+            (position[0] + 1, position[1])]
+
 
 if __name__ == '__main__':
     main()
