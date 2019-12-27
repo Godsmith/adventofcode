@@ -8,7 +8,27 @@ def main():
     intcode = Intcode(ints(data))
     outputs = intcode.run_to_next_input(None)
     s = ''.join(map(chr, outputs))
+    print(s)
     print(alignment_parameter_sum(s))
+
+    # part 2
+    activated_program = ints(data)
+    activated_program[0] = 2
+    intcode = Intcode(activated_program)
+
+    main_routine = "A,B,A,C,A,B,C,B,C,B"
+    a = "R,10,R,10,R,6,R,4"
+    b = "R,10,R,10,L,4"
+    c = "R,4,L,4,L,10,L,10"
+
+    intcode.run_to_next_input(main_routine)
+    intcode.run_to_next_input(a)
+    intcode.run_to_next_input(b)
+    intcode.run_to_next_input(c)
+    outputs = intcode.run_to_next_input('n')
+
+    print(outputs[-1])
+
 
 
 def alignment_parameter_sum(s):

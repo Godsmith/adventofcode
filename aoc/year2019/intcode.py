@@ -49,13 +49,18 @@ class Intcode:
         return self._inputs.popleft()
 
     def set_input(self, input_):
-        self._inputs = deque([input_])
+        if not type(input_) == list:
+            input_ = [input_]
+
+        self._inputs = deque(input_)
 
     def to_list(self):
         """Only makes sense for consecutive programs"""
         return [value for value in self.program.values()]
 
     def run_to_next_input(self, input_=None):
+        if type(input_) == str:
+            input_ = list(map(ord, input_ + '\n'))
         if input_ is not None:
             self.set_input(input_)
         out = []
