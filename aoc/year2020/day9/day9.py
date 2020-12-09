@@ -18,7 +18,8 @@ def get_weakness(invalid_number):
     start = 0
     stop = 2
     while (
-    sum_ := sum(consecutive_numbers := numbers[start:stop + 1])) != invalid_number:
+            sum_ := sum(consecutive_numbers := numbers[start:stop + 1])
+    ) != invalid_number:
         if sum_ < invalid_number:
             stop += 1
         elif sum_ > invalid_number:
