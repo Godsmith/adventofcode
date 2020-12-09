@@ -15,11 +15,15 @@ def get_first_invalid_number():
 
 
 def get_weakness(invalid_number):
-    for i, _ in enumerate(numbers):
-        for j in range(i + 1, len(numbers)):
-            contiguous_range = numbers[i:j + 1]
-            if sum(contiguous_range) == invalid_number:
-                return min(contiguous_range) + max(contiguous_range)
+    start = 0
+    stop = 2
+    while (
+    sum_ := sum(consecutive_numbers := numbers[start:stop + 1])) != invalid_number:
+        if sum_ < invalid_number:
+            stop += 1
+        elif sum_ > invalid_number:
+            start += 1
+    return min(consecutive_numbers) + max(consecutive_numbers)
 
 
 print(invalid_number := get_first_invalid_number())
