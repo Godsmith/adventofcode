@@ -6,6 +6,7 @@ from itertools import zip_longest
 def lmap(func, *iterables):
     return list(map(func, *iterables))
 
+
 # STRINGS
 
 def ints(s: str) -> List[int]:
@@ -22,6 +23,10 @@ def rows(s: str) -> List[str]:
     return s.split('\n')
 
 
+def character_lists(s: str) -> List[List[str]]:
+    return list(map(list, s.split('\n')))
+
+
 def sign_of_difference(a, b):
     """
     >>> sign_of_difference(10, 5)
@@ -36,6 +41,7 @@ def sign_of_difference(a, b):
     else:
         return int((a - b) / abs(a - b))
 
+
 # ITERTOOLS
 
 def grouper(iterable, n, fillvalue=None):
@@ -44,4 +50,3 @@ def grouper(iterable, n, fillvalue=None):
     [('A', 'B', 'C'), ('D', 'E', 'F'), ('G', 'x', 'x')]"""
     args = [iter(iterable)] * n
     return zip_longest(fillvalue=fillvalue, *args)
-
