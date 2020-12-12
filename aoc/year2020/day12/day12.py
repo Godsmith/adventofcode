@@ -44,11 +44,6 @@ class Ship2(Ship):
         super().__init__()
         self.waypoint_x, self.waypoint_y = (10, -1)
 
-    def _rotate_waypoint_90_degrees(self, direction):
-        multiplier = 1 if direction == "L" else -1
-        self.waypoint_x, self.waypoint_y = (multiplier * self.waypoint_y,
-                                            -multiplier * self.waypoint_x)
-
     def _run_instruction(self, instruction, value):
         if instruction == "N":
             self.waypoint_y -= value
@@ -59,8 +54,10 @@ class Ship2(Ship):
         elif instruction == "W":
             self.waypoint_x -= value
         elif instruction in "LR":
-            for _ in range(abs(int(value / 90))):
-                self._rotate_waypoint_90_degrees(instruction)
+            for _ in range(int(value / 90)):
+                multiplier = 1 if instruction == "L" else -1
+                self.waypoint_x, self.waypoint_y = (multiplier * self.waypoint_y,
+                                                    -multiplier * self.waypoint_x)
         elif instruction == "F":
             self.x += self.waypoint_x * value
             self.y += self.waypoint_y * value
