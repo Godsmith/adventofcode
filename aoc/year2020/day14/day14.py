@@ -41,8 +41,8 @@ def run(apply_mask: Callable[[str, int, int], Dict[int, int]]):
             mask = groups[0]
         elif groups := re.findall("mem\[(.*)\] = (.*)", row):
             address, value = groups[0]
-            for address, value in apply_mask(mask, int(value), int(address)).items():
-                mem[address] = value
+            mem = mem | apply_mask(mask, int(value), int(address))
+
     return sum(mem.values())
 
 
