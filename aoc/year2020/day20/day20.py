@@ -1,13 +1,12 @@
-from collections import defaultdict, Counter
+from collections import defaultdict
 from math import prod
 
 from aocd import data
 from aoc.utils import rows
-import re
+import regex as re
 
 
 class Tile():
-    # sides: top, right, bottom, left
     def __init__(self, id_, rows):
         self.id = id_
         self.rows = rows
@@ -19,23 +18,22 @@ class Tile():
 
     @property
     def sides(self):
-        return [self.rows[0],
-                ''.join(row[-1] for row in self.rows),
-                self.rows[-1],
-                ''.join(row[0] for row in self.rows)]
+        # sides: top, right, bottom, left
+        return [self.rows[0], ''.join(row[-1] for row in self.rows),
+                self.rows[-1], ''.join(row[0] for row in self.rows)]
 
     def rotate_so_that_unique_sides_face_top_and_left(self, tiles_from_possible_sides):
         top_is_unique = self._is_unique(self.sides[0], tiles_from_possible_sides)
         left_is_unique = self._is_unique(self.sides[3], tiles_from_possible_sides)
         while not (top_is_unique and left_is_unique):
-            self._rotate()
+            self.rotate()
             top_is_unique = self._is_unique(self.sides[0], tiles_from_possible_sides)
             left_is_unique = self._is_unique(self.sides[3], tiles_from_possible_sides)
 
-    def _rotate(self):
+    def rotate(self):
         self.rows = list(map(''.join, zip(*reversed(self.rows))))
 
-    def _flip(self):
+    def flip(self):
         self.rows = [''.join(reversed(row)) for row in self.rows]
 
     def _is_unique(self, side, tiles_from_possible_sides):
@@ -56,22 +54,21 @@ class Tile():
         self._flip_and_rotate_so_that_side_faces_index(side, 0)
 
     def _flip_and_rotate_so_that_side_faces_index(self, side, index):
-        if self.id == 2423:
-            self.id = self.id
-        rotate_count = 0
-        while rotate_count < 4:
+        if self._rotate_so_that_side_faces_index(side, index):
+            return
+        self.flip()
+        self._rotate_so_that_side_faces_index(side, index)
+
+    def _rotate_so_that_side_faces_index(self, side, index):
+        for _ in range(4):
             if self.sides[index] == side:
-                return
-            self._rotate()
-            rotate_count += 1
-        self._flip()
-        rotate_count = 0
-        while rotate_count < 4:
-            if self.sides[index] == side:
-                return
-            self._rotate()
-            rotate_count += 1
-        assert False, "No match for tile!"
+                return True
+            self.rotate()
+
+    @property
+    def image_without_borders(self):
+        for row in self.rows[1:-1]:
+            yield row[1:-1]
 
 
 class Image():
@@ -80,7 +77,7 @@ class Image():
         self.tiles = self._get_tiles(data)
         self.tiles_from_possible_sides = self._get_tiles_from_possible_sides()
         self.all_sides = list(self._get_all_sides())
-        self.corners, self.edges = self._get_corners_and_edges()
+        self.image_matrix = self._create_image_matrix()
 
     def _get_tiles(self, rows):
         tiles = {}
@@ -107,36 +104,27 @@ class Image():
         for tile in self.tiles.values():
             yield from tile.sides
 
-    def _get_corners_and_edges(self):
-        corners = []
-        edges = []
+    @property
+    def _first_corner(self):
         for tile in self.tiles.values():
             outside_edge_count = 0
             for side in tile.sides:
                 if self.all_sides.count(side) == 1 and self.all_sides.count(
                         ''.join(reversed(side))) == 0:
                     outside_edge_count += 1
-            if outside_edge_count == 1:
-                edges.append(tile)
-            elif outside_edge_count == 2:
-                corners.append(tile)
-        return corners, edges
+            if outside_edge_count == 2:
+                return tile
 
     def _get_tile_with_side(self, side, not_this_tile) -> Tile:
-        tiles = [tile for tile in self.tiles_from_possible_sides[side] if
-                 tile != not_this_tile]
-        if len(tiles) == 0:
-            tiles = tiles
-        assert len(tiles) == 1
-        return tiles[0]
+        return [tile for tile in self.tiles_from_possible_sides[side] if
+                 tile != not_this_tile][0]
 
-    def get_corner_product(self):
-
+    def _create_image_matrix(self):
         # Fix first row
-        image_matrix = {(0, 0): self.corners[0]}
-        self.corners[0].rotate_so_that_unique_sides_face_top_and_left(
+        tile = self._first_corner
+        image_matrix = {(0, 0): tile}
+        tile.rotate_so_that_unique_sides_face_top_and_left(
             self.tiles_from_possible_sides)
-        tile = self.corners[0]
         for column in range(1, self.image_height):
             side = tile.right_side
             tile = self._get_tile_with_side(side, tile)
@@ -152,8 +140,75 @@ class Image():
                 new_tile.flip_and_rotate_so_that_side_faces_top(side)
                 image_matrix[(row, column)] = new_tile
 
-        return prod(image_matrix[(x, y)].id
+        return image_matrix
+
+    @property
+    def corner_product(self):
+        return prod(self.image_matrix[(x, y)].id
                     for x in (0, self.image_height - 1)
                     for y in (0, self.image_height - 1))
 
-print(Image(rows(data), 12).get_corner_product())
+    @property
+    def image_without_borders(self):
+        image_rows = []
+        for row in range(self.image_height):
+            for image_row in range(8):
+                image_row_parts = []
+                for column in range(self.image_height):
+                    image_row_parts.append(
+                        list(self.image_matrix[(row, column)].image_without_borders)[
+                            image_row])
+                image_rows.append(''.join(image_row_parts))
+        return '\n'.join(image_rows)
+
+    @property
+    def count_sea_monsters(self):
+        padding_length = str(self.image_height * 8 - 20 + 1)
+        pattern_string = r"..................#..{" + padding_length + \
+                         r"}#....##....##....###.{" + padding_length + \
+                         r"}.#..#..#..#..#..#..."
+        pattern = re.compile(pattern_string, re.MULTILINE + re.DOTALL)
+        if sea_monster_count := self._count_matches_for_all_rotations(pattern) > 0:
+            return sea_monster_count
+        self._flip_image_matrix()
+        return self._count_matches_for_all_rotations(pattern)
+
+    def _count_matches_for_all_rotations(self, pattern):
+        for _ in range(4):
+            count = len(
+                re.findall(pattern, self.image_without_borders, overlapped=True))
+            if count > 0:
+                return count
+            self._rotate_image_matrix()
+        return 0
+
+    def _rotate_image_matrix(self):
+        new_image_matrix = {}
+        for x in range(self.image_height):
+            for y in range(self.image_height):
+                new_image_matrix[(x, y)] = self.image_matrix[
+                    (self.image_height - y - 1, x)]
+        self.image_matrix = new_image_matrix
+        for tile in self.image_matrix.values():
+            tile.rotate()
+
+    def _flip_image_matrix(self):
+        new_image_matrix = {}
+        for x in range(self.image_height):
+            for y in range(self.image_height):
+                new_image_matrix[(x, y)] = self.image_matrix[
+                    (x, self.image_height - y - 1)]
+        self.image_matrix = new_image_matrix
+        for tile in self.image_matrix.values():
+            tile.flip()
+
+    @property
+    def water_roughness(self):
+        sea_monster_count = self.count_sea_monsters
+        sea_monster_characters = 15 * sea_monster_count
+        total_hash_symbols = self.image_without_borders.count("#")
+        return total_hash_symbols - sea_monster_characters
+
+
+print(Image(rows(data), 12).corner_product)
+print(Image(rows(data), 12).water_roughness)

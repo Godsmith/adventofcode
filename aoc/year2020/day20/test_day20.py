@@ -109,3 +109,22 @@ Tile 3079:
 
 def test_day20():
     print(Image(ROWS, 3).get_corner_product())
+
+def test_image_without_borders():
+    print(Image(ROWS, 3).tiles[2311].image_without_borders)
+
+def test_image_without_borders2():
+    print(Image(ROWS, 3).image_without_borders)
+
+def test_count_sea_monsters():
+    assert Image(ROWS, 3).count_sea_monsters == 2
+
+def test_rotate_image_matrix():
+    image = Image(ROWS, 3)
+    print(image.image_matrix)
+    image._rotate_image_matrix()
+    print(image.image_matrix)
+
+def test_water_roughness():
+    assert Image(ROWS, 3).water_roughness == 273
+
