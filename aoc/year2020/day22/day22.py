@@ -5,7 +5,7 @@ from aoc.utils import rows
 
 
 def get_deck(player_data: str):
-    return deque(map(int, reversed(rows(player_data)[1:])))
+    return deque(map(int, rows(player_data)[1:]))
 
 
 def get_decks(data: str):
@@ -14,8 +14,8 @@ def get_decks(data: str):
 
 
 def score(deck):
-    return sum(card_value * score for card_value, score in zip(deck, range(1, 51)))
-
+    return sum(
+        card_value * score for card_value, score in zip(deck, range(len(deck), 0, -1)))
 
 
 class Game:
@@ -24,48 +24,41 @@ class Game:
         self.deck2 = deck2
         self.previous_decklist_hashes = set()
 
-    def play(self):
+    def play(self) -> tuple[int, deque]:
         while self.deck1 and self.deck2:
-            if self._decklist_hash() in self.previous_decklist_hashes:
-                return 1, self.deck1
-            self.previous_decklist_hashes.add(self._decklist_hash())
-            card1 = self.deck1.pop()
-            card2 = self.deck2.pop()
-            if card1 > len(deck1) or card2 > len(deck2):
-                winner = 1 if card1 > card2 else 2
-            else:
-                winner, _ = Game(deque(list(self.deck1)[:card1]), deque(list(self.deck2)[:card2])).play()
-            if winner == 1:
-                deck1.extendleft([card1, card2])
-            else:
-                deck2.extendleft([card2, card1])
-        if self.deck1:
-            return 1, self.deck1
+            card1 = self.deck1.popleft()
+            card2 = self.deck2.popleft()
+            winner = 1 if card1 > card2 else 2
+            self._give_winner_cards(winner, card1, card2)
+        return winner, self.deck1 or self.deck2
+
+    def _give_winner_cards(self, winner, card1, card2):
+        if winner == 1:
+            self.deck1.extend([card1, card2])
         else:
-            return 2, self.deck2
+            self.deck2.extend([card2, card1])
 
     def _decklist_hash(self):
         return tuple(self.deck1 + deque("/") + self.deck2)
 
 
-deck1, deck2 = get_decks(data)
+class Game2(Game):
+    def play(self):
+        while self.deck1 and self.deck2:
+            if self._decklist_hash() in self.previous_decklist_hashes:
+                return 1, self.deck1
+            self.previous_decklist_hashes.add(self._decklist_hash())
 
-while deck1 and deck2:
-    card1 = deck1.pop()
-    card2 = deck2.pop()
-    if card1 > card2:
-        deck1.extendleft([card1, card2])
-    else:
-        deck2.extendleft([card2, card1])
-
-winning_deck = deck1 or deck2
-print(score(winning_deck))
-
-deck1, deck2 = get_decks(data)
-
-print(score(Game(deck1, deck2).play()[1]))
-
-
+            card1 = self.deck1.popleft()
+            card2 = self.deck2.popleft()
+            if card1 > len(self.deck1) or card2 > len(self.deck2):
+                winner = 1 if card1 > card2 else 2
+            else:
+                winner, _ = Game2(deque(list(self.deck1)[:card1]),
+                                  deque(list(self.deck2)[:card2])).play()
+            self._give_winner_cards(winner, card1, card2)
+        return winner, self.deck1 or self.deck2
 
 
-
+print(score(Game(*get_decks(data)).play()[1]))
+print(score(Game2(*get_decks(data)).play()[1]))
