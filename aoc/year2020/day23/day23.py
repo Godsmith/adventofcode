@@ -2,38 +2,75 @@ from collections import deque
 
 from aocd import data
 
-print(data)
+class Cup:
+    def __init__(self, number):
+        self.number = number
+        self.next_cup = None
 
-cups = deque(map(int, data))
+    def __repr__(self):
+        return f"Cup(number={self.number}, next_cup={self.next_cup.number})"
 
-#cups = deque([3,8,9,1,2,5,4,6,7])
+def print_cups(cup):
+    for _ in cups:
+        print(cup.number, end="")
+        cup = cup.next_cup
+    print()
 
 def move(cups, moves):
+    current_cup = list(cups.values())[0]
     for i in range(moves):
         print(i)
-        #print(cups)
-        current_cup = cups[0]
-        cups.rotate(-1)
-        picked_up = deque()
-        picked_up.append(cups.popleft())
-        picked_up.append(cups.popleft())
-        picked_up.append(cups.popleft())
-        #print(f"pick up: {picked_up}")
-        destination_cup = current_cup - 1
-        while destination_cup not in cups:
-            destination_cup -= 1
-            if destination_cup < min(cups):
-                destination_cup = max(cups)
-        #print(f"destination: {destination_cup}")
-        destination_index = cups.index(destination_cup) + 1
-        cups.insert(destination_index, picked_up.pop())
-        cups.insert(destination_index, picked_up.pop())
-        cups.insert(destination_index, picked_up.pop())
-    return cups
+        #print_cups(current_cup)
+        picked_up = []
+        picked_up_numbers = set()
+        cup_to_pick_up = current_cup.next_cup
+        for _ in range(3):
+            picked_up.append(cup_to_pick_up)
+            picked_up_numbers.add(cup_to_pick_up.number)
+            cup_to_pick_up = cup_to_pick_up.next_cup
+        #print(f"picked up: {[cup.number for cup in picked_up]}")
+        current_cup.next_cup = cup_to_pick_up
+        destination_number = current_cup.number - 1
+        if destination_number == 0:
+            destination_number = len(cups)
+        while destination_number in picked_up_numbers:
+            destination_number -= 1
+            if destination_number == 0:
+                destination_number = len(cups)
+        #print(f"destination: {destination_number}")
+        destination_cup = cups[destination_number]
+        picked_up[2].next_cup = destination_cup.next_cup
+        destination_cup.next_cup = picked_up[0]
+        current_cup = current_cup.next_cup
 
-while cups[0] != 1:
-    cups.rotate()
-print(''.join(map(str,list(move(cups, 100))[1:])))
+# DEBUG
+#data = "389125467"
+cups = {int(s): Cup(int(s)) for s in data}
+for i, cup in enumerate(cups.values()):
+    cup.next_cup = list(cups.values())[(i + 1) % len(cups)]
 
-cups = deque(list(cups) + list(range(10, 1000001)))
-print(''.join(map(str,list(move(cups, 10000000))[1:])))
+move(cups, 100)
+
+cup = cups[1]
+for _ in range(len(cups) - 1):
+    cup = cup.next_cup
+    print(cup.number, end="")
+
+
+cups = {int(s): Cup(int(s)) for s in data}
+for i in range(10, 1000001):
+    cups[i] = Cup(i)
+for i, cup in enumerate(cups.values()):
+    cup.next_cup = list(cups.values())[(i + 1) % len(cups)]
+
+move(cups, 10000000)
+
+cup = cups[1]
+for _ in range(len(cups) - 1):
+    cup = cup.next_cup
+    print(cup.number, end="")
+
+#print(''.join(map(str,list(move(cups, 100))[1:])))
+
+#cups = deque(list(cups) + list(range(10, 1000001)))
+#print(''.join(map(str,list(move(cups, 10000000))[1:])))
