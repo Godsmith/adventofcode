@@ -1,2 +1,3 @@
 advent-of-code-data
 pytest
+more_itertools==8.12.0
