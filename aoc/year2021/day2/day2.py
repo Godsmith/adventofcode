@@ -2,19 +2,19 @@ from typing import List
 
 from aocd import data
 from aoc.utils import rows
-from more_itertools import sliding_window
 
 strings = rows(data)
 
+
 # Part 1
 
-total_steps_forward = sum([int(s.split()[1]) for s in strings if "forward" in s])
-total_steps_down = sum([int(s.split()[1]) for s in strings if "down" in s])
-total_steps_up = sum([int(s.split()[1]) for s in strings if "up" in s])
+def total(strings: List[str], command: str):
+    return sum([int(s.split()[1]) for s in strings if command in s])
 
-depth = total_steps_down - total_steps_up
 
-print(total_steps_forward * depth)
+depth = total(strings, "down") - total(strings, "up")
+
+print(total(strings, "forward") * depth)
 
 
 # Part 2
