@@ -8,8 +8,11 @@ strings = rows(data)
 
 # Part 1
 
+def value(s):
+    return int(s.split()[1])
+
 def total(strings: List[str], command: str):
-    return sum([int(s.split()[1]) for s in strings if command in s])
+    return sum(value(s) for s in strings if command in s)
 
 
 depth = total(strings, "down") - total(strings, "up")
@@ -18,9 +21,6 @@ print(total(strings, "forward") * depth)
 
 
 # Part 2
-
-def value(s):
-    return int(s.split()[1])
 
 
 aim = 0
