@@ -1,17 +1,21 @@
+from collections import Counter, defaultdict
 from aocd import data
-
 from aoc.utils import ints
 
-lanternfish = ints(data)
 
-for generation in range(80):
-    new_lanternfish = []
-    for i in lanternfish:
-        if i == 0:
-            new_lanternfish.extend([6, 8])
-        else:
-            new_lanternfish.append(i - 1)
-    lanternfish = new_lanternfish
-    print(generation)
+def solve(days):
+    counter = Counter(ints(data))
+    for generation in range(days):
+        new_counter = defaultdict(lambda: 0)
+        for value, count in counter.items():
+            if value == 0:
+                new_counter[8] += count
+                new_counter[6] += count
+            else:
+                new_counter[value - 1] += count
+        counter = new_counter
+    return sum(counter.values())
 
-print(len(lanternfish))
+
+print(solve(80))
+print(solve(256))
