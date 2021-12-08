@@ -1,16 +1,11 @@
 from aocd import get_data
 from aoc.utils import rows
 
-lines = rows(get_data())
 
-
-def part1(lines):
+def digit_count(lines, *signal_pattern_lengths):
     output_values = [line.split("|")[1].strip() for line in lines]
     character_counts = [len(value) for line in output_values for value in line.split()]
-    print(character_counts.count(2) + character_counts.count(4) + character_counts.count(3) + character_counts.count(7))
-
-
-part1(lines)
+    return sum(character_counts.count(length) for length in signal_pattern_lengths)
 
 
 def get_output_value(line):
@@ -45,7 +40,7 @@ def get_output_value(line):
     # d
     for wire_set in wire_sets_with_length(5):
         if wire_set_for_digit[7].issubset(wire_set):
-            wire_for_segment["d"] = (wire_set - wire_set_for_digit[7] - {wire_for_segment["e"]}).pop()
+            wire_for_segment["d"] = (wire_set - wire_set_for_digit[7] - {wire_for_segment["g"]}).pop()
             wire_set_for_digit[3] = wire_set
 
     # f
@@ -59,14 +54,14 @@ def get_output_value(line):
     wire_set_for_digit[2] = wire_set_for_digit[8] - {wire_for_segment["b"]} - {wire_for_segment["f"]}
     wire_set_for_digit[5] = wire_set_for_digit[6] - {wire_for_segment["e"]}
 
-    output_signal_patterns = [set(s) for s in line.split("|")[1].split()]
-    sum_ = 0
-    for code, value in zip(output_signal_patterns, [1000, 100, 10, 1]):
-        for i in range(10):
-            if code == wire_set_for_digit[i]:
-                sum_ += i * value
-                break
-    return sum_
+    # Reverse dictionary for easy lookup
+    digit_from_wire_set = {frozenset(wire_set_for_digit[i]): i for i in wire_set_for_digit.keys()}
+
+    output_signal_patterns = [frozenset(s) for s in line.split("|")[1].split()]
+    return sum(digit_from_wire_set[signal_pattern] * value for signal_pattern, value in
+               zip(output_signal_patterns, [1000, 100, 10, 1]))
 
 
+lines = rows(get_data())
+print(digit_count(lines, 2, 3, 4, 7))
 print(sum(get_output_value(line) for line in lines))
