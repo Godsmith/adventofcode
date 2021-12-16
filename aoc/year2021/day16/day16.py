@@ -1,5 +1,6 @@
-from collections import deque
 from dataclasses import dataclass
+from math import prod
+from operator import eq, lt, gt
 from typing import Optional, List
 
 from aocd import get_data
@@ -16,15 +17,23 @@ class Packet:
     def version_sum(self):
         return self.version + sum(subpacket.version_sum() for subpacket in self.subpackets)
 
+    @property
+    def value(self):
+        operator = [sum, prod, min, max, None, gt, lt, eq][self.type]
+        values = [subpacket.value for subpacket in self.subpackets]
+        if self.type in (0, 1, 2, 3):
+            return operator(values)
+        elif self.type in (5, 6, 7):
+            return operator(*values)
+        else:
+            return self.literal_value
+
 
 class PacketFactory:
     def __init__(self, hexadecimal_string: str):
         integer = int(hexadecimal_string, 16)
         number_of_bits = len(hexadecimal_string) * 4
         self.binary_string = format(integer, f"0{number_of_bits}b")
-
-    def version_sum(self):
-        return self.create_packet().version_sum()
 
     def create_packets_until_end(self):
         packets = []
@@ -79,4 +88,6 @@ class PacketFactory:
         return format(self.take_as_int(n), "X")
 
 
-print(PacketFactory(get_data()).version_sum())
+packet = PacketFactory(get_data()).create_packet()
+print(packet.version_sum())
+print(packet.value)
