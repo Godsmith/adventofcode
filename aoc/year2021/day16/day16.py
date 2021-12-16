@@ -2,6 +2,8 @@ from collections import deque
 from dataclasses import dataclass
 from typing import Optional, List
 
+from aocd import get_data
+
 
 @dataclass
 class Packet:
@@ -11,12 +13,18 @@ class Packet:
     subpackets: List['Packet']
     length: int
 
+    def version_sum(self):
+        return self.version + sum(subpacket.version_sum() for subpacket in self.subpackets)
+
 
 class PacketFactory:
     def __init__(self, hexadecimal_string: str):
         integer = int(hexadecimal_string, 16)
         number_of_bits = len(hexadecimal_string) * 4
         self.binary_string = format(integer, f"0{number_of_bits}b")
+
+    def version_sum(self):
+        return self.create_packet().version_sum()
 
     def create_packets_until_end(self):
         packets = []
@@ -69,3 +77,6 @@ class PacketFactory:
 
     def take_as_hexadecimal_string(self, n: int) -> str:
         return format(self.take_as_int(n), "X")
+
+
+print(PacketFactory(get_data()).version_sum())
