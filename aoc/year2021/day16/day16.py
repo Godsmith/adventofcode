@@ -1,12 +1,15 @@
 from collections import deque
+from dataclasses import dataclass
+from typing import Optional, List
 
 
+@dataclass
 class Packet:
-    def __init__(self, version, type_):
-        self.version = version
-        self.type = type_
-        self.literal_value = None  # type: Optional[int]
-        self.subpackets = []
+    version: int
+    type: int
+    literal_value: Optional[int]
+    subpackets: List['Packet']
+    length: int
 
 
 class PacketFactory:
@@ -28,20 +31,26 @@ class PacketFactory:
         return packets
 
     def create_packet(self):
-        packet = Packet(version=self.take_as_int(3), type_=self.take_as_int(3))
+        binary_string_length_before = len(self.binary_string)
+        version = self.take_as_int(3)
+        type_ = self.take_as_int(3)
+        literal_value = None
+        subpackets = []
 
-        if packet.type == 4:
+        if type_ == 4:
             last_group = False
             literal_value_binary_string = ""
             while not last_group:
                 if self.take_as_binary_string(1) == "0":
                     last_group = True
                 literal_value_binary_string += self.take_as_binary_string(4)
-            packet.literal_value = int(literal_value_binary_string, 2)
+            literal_value = int(literal_value_binary_string, 2)
         else:
             if self.take_as_binary_string(1) == "0":
                 total_length_of_subpackets = self.take_as_int(15)
-                packet.subpackets = self.create_packets_with_total_length(total_length_of_subpackets)
+                subpackets = self.create_packets_with_total_length(total_length_of_subpackets)
+        packet = Packet(version=version, type=type_, literal_value=literal_value, subpackets=subpackets,
+                        length=binary_string_length_before - len(self.binary_string))
         return packet
 
     def take_as_binary_string(self, n: int) -> str:

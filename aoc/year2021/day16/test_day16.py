@@ -17,7 +17,12 @@ class TestPacket:
 
         assert packet.create_packet().literal_value == 2021
 
-    def test_operator_length_type_0(self):
+    def test_length(self):
+        packet = PacketFactory('D2FE28')
+
+        assert packet.create_packet().length == 21
+
+    def test_subpackets_type_0(self):
         packet = PacketFactory('38006F45291200')
 
         assert len(packet.create_packet().subpackets) == 2
