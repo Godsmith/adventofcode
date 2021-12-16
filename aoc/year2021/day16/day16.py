@@ -30,6 +30,10 @@ class PacketFactory:
             packets.append(self.create_packet())
         return packets
 
+    def create_packets(self, count: int):
+        for _ in range(count):
+            yield self.create_packet()
+
     def create_packet(self):
         binary_string_length_before = len(self.binary_string)
         version = self.take_as_int(3)
@@ -49,9 +53,11 @@ class PacketFactory:
             if self.take_as_binary_string(1) == "0":
                 total_length_of_subpackets = self.take_as_int(15)
                 subpackets = self.create_packets_with_total_length(total_length_of_subpackets)
-        packet = Packet(version=version, type=type_, literal_value=literal_value, subpackets=subpackets,
-                        length=binary_string_length_before - len(self.binary_string))
-        return packet
+            else:
+                number_of_subpackets = self.take_as_int(11)
+                subpackets = list(self.create_packets(number_of_subpackets))
+        return Packet(version=version, type=type_, literal_value=literal_value, subpackets=subpackets,
+                      length=binary_string_length_before - len(self.binary_string))
 
     def take_as_binary_string(self, n: int) -> str:
         string = self.binary_string[:n]

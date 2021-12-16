@@ -26,3 +26,8 @@ class TestPacket:
         packet = PacketFactory('38006F45291200')
 
         assert len(packet.create_packet().subpackets) == 2
+
+    def test_subpackets_type_1(self):
+        packet = PacketFactory('EE00D40C823060')
+
+        assert len(packet.create_packet().subpackets) == 3
