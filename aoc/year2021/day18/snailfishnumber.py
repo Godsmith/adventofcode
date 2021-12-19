@@ -1,6 +1,7 @@
 import math
 from collections import deque
 from typing import Union, List
+from functools import reduce
 
 
 class SnailfishNumber:
@@ -27,7 +28,8 @@ class SnailfishNumber:
 
     @classmethod
     def final_sum(cls, text: str):
-        return sum([SnailfishNumber(row) for row in text.splitlines()], start=SnailfishNumber('[]'))
+        numbers = [SnailfishNumber(line) for line in text.splitlines()]
+        return reduce(lambda a, b: a + b, numbers)
 
     @property
     def magnitude(self):
