@@ -1,7 +1,6 @@
 from collections import deque
 
-from aoc.year2021.day18.day18 import SnailfishNumber
-import pytest
+from aoc.year2021.day18.snailfishnumber import SnailfishNumber
 
 
 class TestSnailfishNumber:
@@ -70,3 +69,26 @@ class TestSnailfishNumber:
         s = SnailfishNumber('[11,2]')
         s._split()
         assert str(s) == '[[5,6],2]'
+
+    def test_add(self):
+        s = SnailfishNumber('[[[[4,3],4],4],[7,[[8,4],9]]]') + SnailfishNumber('[1,1]')
+        assert str(s) == '[[[[0,7],4],[[7,8],[6,0]]],[8,1]]'
+
+    def test_magnitude(self):
+        assert SnailfishNumber('[[1,2],[[3,4],5]]').magnitude == 143
+
+    def test_final_sum(self):
+        text = """[[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]]
+[[[5,[2,8]],4],[5,[[9,9],0]]]
+[6,[[[6,2],[5,6]],[[7,6],[4,7]]]]
+[[[6,[0,7]],[0,9]],[4,[9,[9,0]]]]
+[[[7,[6,4]],[3,[1,3]]],[[[5,5],1],9]]
+[[6,[[7,3],[3,2]]],[[[3,8],[5,7]],4]]
+[[[[5,4],[7,7]],8],[[8,3],8]]
+[[9,3],[[9,9],[6,[4,9]]]]
+[[2,[[7,7],7]],[[5,8],[[9,3],[0,2]]]]
+[[[[5,2],5],[8,[3,7]]],[[5,[7,5]],[4,4]]]"""
+        s = SnailfishNumber.final_sum(text)
+        assert str(s) == '[[[[6,6],[7,6]],[[7,7],[7,0]]],[[[7,7],[7,7]],[[7,8],[9,9]]]]'
+        assert s.magnitude == 4140
+
