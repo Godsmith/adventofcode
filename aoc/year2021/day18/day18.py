@@ -1,3 +1,4 @@
+import math
 from typing import List, Union, Optional
 from collections import deque
 
@@ -16,7 +17,11 @@ class SnailfishNumber:
         source.popleft()
         while source:
             if source[0].isnumeric():
-                list_.append(int(source.popleft()))
+                if source[1].isnumeric():
+                    value = int(source.popleft() + source.popleft())
+                else:
+                    value = int(source.popleft())
+                list_.append(value)
             elif source[0] == "[":
                 list_.append(SnailfishNumber._parse(SnailfishNumber._pop_until_enclosed_list_and_return(source)))
             else:
@@ -66,3 +71,14 @@ class SnailfishNumber:
             self[self.locations[explode_index + 2]] += right_value  # +2 since explode_index is index of left digit
         if explode_index > 0:
             self[self.locations[explode_index - 1]] += left_value
+
+        self.locations = self._locations()
+
+    def _split(self):
+        split_location = [location for location in self.locations if self[location] >= 10][0]
+        value = self[split_location]
+        left_value = math.floor(value / 2)
+        right_value = math.ceil(value / 2)
+        self[split_location] = [left_value, right_value]
+
+        self.locations = self._locations()

@@ -18,6 +18,10 @@ class TestSnailfishNumber:
         assert SnailfishNumber._parse(deque("[1,2]")) == [1, 2]
         assert SnailfishNumber._parse(deque("[1,[2,3]]")) == [1, [2, 3]]
 
+    def test_parse_multidigit(self):
+        assert SnailfishNumber._parse(deque("[10,2]")) == [10,2]
+
+
     def test_indices(self):
         assert SnailfishNumber("[1,2]")._locations() == [[0], [1]]
         assert SnailfishNumber("[1,[2,3]]")._locations() == [[0], [1, 0], [1, 1]]
@@ -61,3 +65,8 @@ class TestSnailfishNumber:
         s = SnailfishNumber('[[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]')
         s._explode()
         assert str(s) == '[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]'
+
+    def test_split(self):
+        s = SnailfishNumber('[11,2]')
+        s._split()
+        assert str(s) == '[[5,6],2]'
