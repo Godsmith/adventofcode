@@ -74,6 +74,18 @@ class TestSnailfishNumber:
         s = SnailfishNumber('[[[[4,3],4],4],[7,[[8,4],9]]]') + SnailfishNumber('[1,1]')
         assert str(s) == '[[[[0,7],4],[[7,8],[6,0]]],[8,1]]'
 
+    def test_add_again(self):
+        s = SnailfishNumber('[[2,[[7,7],7]],[[5,8],[[9,3],[0,2]]]]') + SnailfishNumber('[[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]]')
+        assert str(s) == '[[[[7,8],[6,6]],[[6,0],[7,7]]],[[[7,8],[8,8]],[[7,9],[0,6]]]]'
+        assert s.magnitude == 3993
+
+    def test_add_does_not_change_original_numbers(self):
+        s1 = SnailfishNumber('[[[[4,3],4],4],[7,[[8,4],9]]]')
+        s2 = SnailfishNumber('[1,1]')
+        s1 + s2
+        assert str(s1) == '[[[[4,3],4],4],[7,[[8,4],9]]]'
+        assert str(s2) == '[1,1]'
+
     def test_magnitude(self):
         assert SnailfishNumber('[[1,2],[[3,4],5]]').magnitude == 143
 
@@ -91,4 +103,18 @@ class TestSnailfishNumber:
         s = SnailfishNumber.final_sum(text)
         assert str(s) == '[[[[6,6],[7,6]],[[7,7],[7,0]]],[[[7,7],[7,7]],[[7,8],[9,9]]]]'
         assert s.magnitude == 4140
+
+    def test_largest_permutation_magnitude(self):
+        text = """[[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]]
+[[[5,[2,8]],4],[5,[[9,9],0]]]
+[6,[[[6,2],[5,6]],[[7,6],[4,7]]]]
+[[[6,[0,7]],[0,9]],[4,[9,[9,0]]]]
+[[[7,[6,4]],[3,[1,3]]],[[[5,5],1],9]]
+[[6,[[7,3],[3,2]]],[[[3,8],[5,7]],4]]
+[[[[5,4],[7,7]],8],[[8,3],8]]
+[[9,3],[[9,9],[6,[4,9]]]]
+[[2,[[7,7],7]],[[5,8],[[9,3],[0,2]]]]
+[[[[5,2],5],[8,[3,7]]],[[5,[7,5]],[4,4]]]"""
+        assert SnailfishNumber.largest_permutation_magnitude(text) == 3993
+
 

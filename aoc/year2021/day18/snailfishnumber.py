@@ -1,7 +1,9 @@
 import math
 from collections import deque
+from copy import deepcopy
 from typing import Union, List
 from functools import reduce
+from itertools import permutations
 
 
 class SnailfishNumber:
@@ -13,23 +15,30 @@ class SnailfishNumber:
         return repr(self.list).replace(" ", "")
 
     def __add__(self, other: 'SnailfishNumber'):
-        self.list = [self.list, other.list]
-        self.locations = self._locations()
+        number = deepcopy(self)
+        number.list = [number.list, deepcopy(other.list)]
+        number.locations = number._locations()
 
         while True:
-            if self._can_explode():
-                self._explode()
-            elif self._can_split():
-                self._split()
+            if number._can_explode():
+                number._explode()
+            elif number._can_split():
+                number._split()
             else:
                 break
 
-        return self
+        return number
 
     @classmethod
     def final_sum(cls, text: str):
         numbers = [SnailfishNumber(line) for line in text.splitlines()]
         return reduce(lambda a, b: a + b, numbers)
+
+    @classmethod
+    def largest_permutation_magnitude(cls, text: str):
+        numbers = [SnailfishNumber(line) for line in text.splitlines()]
+        magnitudes = [(a + b).magnitude for a, b in permutations(numbers, 2)]
+        return max(magnitudes)
 
     @property
     def magnitude(self):
