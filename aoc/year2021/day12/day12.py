@@ -1,24 +1,29 @@
-from collections import defaultdict
-from typing import Set
+from collections import defaultdict, Counter
+from typing import Set, Dict
 
 from aocd import get_data
 
 from aoc.utils import rows
 
-connections = defaultdict(set)
-for room1, room2 in [row.split("-") for row in rows(get_data(year=2021, day=12))]:
-    connections[room1].add(room2)
-    connections[room2].add(room1)
 
-
-def visit(current_room: str, previous_rooms: Set[str]):
+def visit(connections: Dict[str, Set[str]], room_limit: int, room_counter: Counter[str, int], current_room: str):
     if current_room == "end":
         return 1
-    possible_next_rooms = {room for room in connections[current_room] if
-                           room == room.upper() or room not in previous_rooms}
-    path_sum = 0
-    for next_room in possible_next_rooms:
-        path_sum += visit(next_room, previous_rooms | {current_room})
-    return path_sum
+    new_room_counter = Counter(room_counter) + Counter({current_room: 1})
+    new_lowercase_room_counter = {room: count for room, count in new_room_counter.items() if room == room.lower()}
+    disallowed_rooms = {'start'} | set(new_lowercase_room_counter.keys()) if max(
+        new_lowercase_room_counter.values()) == room_limit else set()
+    possible_next_rooms = {room for room in connections[current_room]} - disallowed_rooms
+    return sum(visit(connections, room_limit, new_room_counter, room) for room in possible_next_rooms)
 
-print(visit("start", set()))
+
+def count_paths(data: str, room_limit: int):
+    connections = defaultdict(set)
+    for room1, room2 in [row.split("-") for row in rows(data)]:
+        connections[room1].add(room2)
+        connections[room2].add(room1)
+    return visit(connections, room_limit, Counter(), "start")
+
+
+print(count_paths(get_data(year=2021, day=12), 1))
+print(count_paths(get_data(year=2021, day=12), 2))
