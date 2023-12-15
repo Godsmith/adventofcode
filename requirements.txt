@@ -2,3 +2,5 @@ advent-of-code-data
 pytest
 more_itertools==8.12.0
 parse==1.19.0
+tqdm
+black
