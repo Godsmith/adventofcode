@@ -20,3 +20,11 @@ for i, instruction in enumerate(itertools.cycle(instructions), 1):
     if position == "ZZZ":
         print(i)
         break
+
+positions = [position for position in network if position.endswith("A")]
+for i, instruction in enumerate(itertools.cycle(instructions), 1):
+    positions = [network[position][instruction] for position in positions]
+    print(positions)
+    if all(position.endswith("Z") for position in positions):
+        print(i)
+        break
