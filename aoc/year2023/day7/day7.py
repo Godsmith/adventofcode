@@ -1,10 +1,23 @@
 from aocd import data
 from aoc.utils import rows
 from collections import Counter
+import itertools
 
 
 hands = [row.split(" ")[0] for row in rows(data)]
 bids = [int(row.split(" ")[1]) for row in rows(data)]
+
+
+def get_max_type_score(hand: str) -> int:
+    joker_count = hand.count("J")
+    hand_without_jokers = hand.replace("J", "")
+    max_score = 0
+    for joker_replacements in itertools.combinations_with_replacement(
+        "123456789TQKA", joker_count
+    ):
+        new_hand = hand_without_jokers + "".join(joker_replacements)
+        max_score = max(get_type_score(new_hand), max_score)
+    return max_score
 
 
 def get_type_score(hand: str) -> int:
@@ -58,4 +71,6 @@ print_total_winnings(
     [get_type_score(hand) + get_ordering_score(hand) for hand in hands]
 )
 
-# scores = [get_max_type_score(hand) + get_ordering_score(hand, jokers=True) for hand in hands]
+print_total_winnings(
+    [get_max_type_score(hand) + get_ordering_score(hand, jokers=True) for hand in hands]
+)
