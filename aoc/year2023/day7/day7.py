@@ -2,32 +2,12 @@ from aocd import data
 from aoc.utils import rows
 from collections import Counter
 
-value_from_card = {
-    "A": 14,
-    "K": 13,
-    "Q": 12,
-    "J": 11,
-    "T": 10,
-    "9": 9,
-    "8": 8,
-    "7": 7,
-    "6": 6,
-    "5": 5,
-    "4": 4,
-    "3": 3,
-    "2": 2,
-}
 
-letter_hands = [row.split(" ")[0] for row in rows(data)]
+hands = [row.split(" ")[0] for row in rows(data)]
 bids = [int(row.split(" ")[1]) for row in rows(data)]
 
-hands: list[list[int]] = []
-for letter_hand in letter_hands:
-    hand = [value_from_card[card] for card in letter_hand]
-    hands.append(hand)
 
-
-def get_type_score(hand: list[int]) -> int:
+def get_type_score(hand: str) -> int:
     counter = Counter(hand)
     values = sorted(counter.values())
     if 5 in values:
@@ -45,24 +25,37 @@ def get_type_score(hand: list[int]) -> int:
     return 1
 
 
-def get_ordering_score(hand: list[int]) -> float:
+def get_ordering_score(hand: str, jokers: bool = False) -> float:
     value_strings = []
-    for value in hand:
-        value_string = str(value)
+    value_from_card = {
+        "A": "14",
+        "K": "13",
+        "Q": "12",
+        "J": "11",
+        "T": "10",
+    }
+    if jokers:
+        value_from_card["J"] = "01"
+    for card in hand:
+        value_string = value_from_card.get(card, card)
         if len(value_string) == 1:
             value_string = f"0{value_string}"
         value_strings.append(value_string)
     return float(f"0.{''.join(value_strings)}")
 
 
-scores = [get_type_score(hand) + get_ordering_score(hand) for hand in hands]
+def print_total_winnings(scores):
+    scores_hands_bids = list(sorted(zip(scores, hands, bids)))
 
-scores_hands_bids = list(sorted(zip(scores, hands, bids)))
+    total_winnings = sum(
+        rank * bid for rank, (_, _, bid) in enumerate(scores_hands_bids, 1)
+    )
 
-print(scores_hands_bids)
+    print(total_winnings)
 
-total_winnings = sum(
-    rank * bid for rank, (_, _, bid) in enumerate(scores_hands_bids, 1)
+
+print_total_winnings(
+    [get_type_score(hand) + get_ordering_score(hand) for hand in hands]
 )
 
-print(total_winnings)
+# scores = [get_max_type_score(hand) + get_ordering_score(hand, jokers=True) for hand in hands]
