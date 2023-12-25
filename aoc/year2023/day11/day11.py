@@ -1,53 +1,56 @@
 import itertools
-from aoc.utils import character_lists, rows
+from aoc.utils import rows
 from aocd import data
-
-
-def expand(data: str):
-    row_length = len(rows(data)[0])
-
-    empty_row = "." * row_length
-    data = data.replace(empty_row, empty_row + "\n" + empty_row)
-
-    all_rows = rows(data)
-
-    x_with_galaxy = set()
-
-    for row in all_rows:
-        for x, char in enumerate(row):
-            if char == "#":
-                x_with_galaxy.add(x)
-
-    new_rows = []
-    for row in all_rows:
-        new_row = []
-        for x, char in enumerate(row):
-            if not x in x_with_galaxy:
-                char = ".."
-            new_row.append(char)
-        new_rows.append("".join(new_row))
-
-    return "\n".join(new_rows)
-
-
-new_data = expand(data)
-
-all_rows = rows(new_data)
-
-galaxies = set()
-for x, row in enumerate(all_rows):
-    for y, char in enumerate(row):
-        if char == "#":
-            galaxies.add((x, y))
 
 
 def distance(galaxy1: tuple[int, int], galaxy2: tuple[int, int]):
     return abs(galaxy1[0] - galaxy2[0]) + abs(galaxy1[1] - galaxy2[1])
 
 
-distances = [
-    distance(galaxy1, galaxy2)
-    for galaxy1, galaxy2 in itertools.combinations(galaxies, 2)
-]
+def expanded_galaxy(
+    galaxy: tuple[int, int],
+    columns_without_galaxies: list[int],
+    rows_without_galaxies: list[int],
+    expansion: int,
+) -> tuple[int, int]:
+    empty_columns_before = len(
+        [x1 for x1 in columns_without_galaxies if x1 < galaxy[0]]
+    )
+    empty_rows_before = len([y1 for y1 in rows_without_galaxies if y1 < galaxy[1]])
+    new_x = galaxy[0] + empty_columns_before * (expansion - 1)
+    new_y = galaxy[1] + empty_rows_before * (expansion - 1)
+    return (new_x, new_y)
 
-print(sum(distances))
+
+def expanded_distance_sum(data: str, expansion: int):
+    all_rows = rows(data)
+    rows_without_galaxies = [
+        y for y, row in enumerate(all_rows) if all(char == "." for char in row)
+    ]
+    columns_without_galaxies = [
+        x for x, _ in enumerate(all_rows[0]) if all(row[x] == "." for row in all_rows)
+    ]
+    galaxies = {
+        (x, y)
+        for y, row in enumerate(all_rows)
+        for x, char in enumerate(row)
+        if char == "#"
+    }
+
+    expanded_galaxies = {
+        expanded_galaxy(
+            galaxy, columns_without_galaxies, rows_without_galaxies, expansion
+        )
+        for galaxy in galaxies
+    }
+
+    distances = [
+        distance(galaxy1, galaxy2)
+        for galaxy1, galaxy2 in itertools.combinations(expanded_galaxies, 2)
+    ]
+
+    return sum(distances)
+
+
+print(expanded_distance_sum(data, 2))
+print(expanded_distance_sum(data, 1000000))
