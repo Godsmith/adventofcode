@@ -3,6 +3,7 @@ import re
 from aocd import data
 from aoc.utils import rows
 import itertools
+import math
 
 instructions, nodes = data.split("\n\n")
 
@@ -21,48 +22,17 @@ for i, instruction in enumerate(itertools.cycle(instructions), 1):
         print(i)
         break
 
-# TRY 2
+positions = [position for position in network if position.endswith("A")]
+first_position = positions[1]
 
-# entire_cycle_map = {}
-# for position in network:
-#     ending_position = position
-#     for instruction in instructions:
-#         ending_position = network[position][instruction]
-#     entire_cycle_map[position] = ending_position
-
-# positions = [position for position in network if position.endswith("A")]
-# for i in itertools.count(len(instructions), len(instructions)):
-#     positions = [entire_cycle_map[position] for position in positions]
-#     if all(position.endswith("Z") for position in positions):
-#         print(i)
-#         break
-
-# TRY 1
-
-# positions = [position for position in network if position.endswith("A")]
-# for i, instruction in enumerate(itertools.cycle(instructions), 1):
-#     positions = [network[position][instruction] for position in positions]
-#     print(positions)
-#     if all(position.endswith("Z") for position in positions):
-#         print(i)
-#         break
-
-# TRY 3
-
-# Probably won't work because the number of combinations is 1E14
-
-# from functools import cache
+lengths = []
+for position in positions:
+    for i, instruction in enumerate(itertools.cycle(instructions), 1):
+        position = network[position][instruction]
+        # if position == first_position and instruction % len(instructions) == 0:
+        if position.endswith("Z"):
+            lengths.append(i)
+            break
 
 
-# @cache
-# def step(set_: frozenset, instruction: str):
-#     return frozenset(network[position][instruction] for position in set_)
-
-
-# positions = frozenset(position for position in network if position.endswith("A"))
-# for i, instruction in enumerate(itertools.cycle(instructions), 1):
-#     positions = step(positions, instruction)
-#     print(step.cache_info())
-#     if all(position.endswith("Z") for position in positions):
-#         print(i)
-#         break
+print(math.lcm(*lengths))
