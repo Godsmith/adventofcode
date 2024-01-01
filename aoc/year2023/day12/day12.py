@@ -1,34 +1,48 @@
-import re
+from functools import cache
+from typing import Iterable
 from aocd import data
 from aoc.utils import rows
-import itertools
-import tqdm
-
-lines = rows(data)
 
 
-def get_sizes(conditions: str) -> list[int]:
-    return [len(match) for match in re.findall("#+", conditions)]
-
-
-def all_variant_conditions(condition_list: str) -> list[str]:
-    question_mark_count = condition_list.count("?")
-    variants = []
-    for characters in itertools.product(".#", repeat=question_mark_count):
-        new_conditions = condition_list
-        for char in characters:
-            new_conditions = new_conditions.replace("?", char, 1)
-        variants.append(new_conditions)
-    return variants
-
-
-count_sum = 0
-for line in tqdm.tqdm(lines):
-    condition_list, records = line.split()
-    sizes = [int(record) for record in records.split(",")]
-    count_sum += sum(
-        get_sizes(condition_list) == sizes
-        for condition_list in all_variant_conditions(condition_list)
+def record_starts_with_group_of_size(record: str, size: int):
+    if len(record) < size:
+        return False
+    starting_string = record[:size]
+    return (size == len(record) or record[size] in (".", "?")) and all(
+        c in ["#", "?"] for c in starting_string
     )
 
-print(count_sum)
+
+@cache
+def count_variants(record: str, sizes: tuple):
+    if not sizes:
+        return 0 if "#" in record else 1
+    if not record:
+        return 0
+    count = 0
+    if record_starts_with_group_of_size(record, sizes[0]):
+        count += count_variants(record[sizes[0] + 1 :], sizes[1:])
+    if record[0] != "#":
+        count += count_variants(record[1:], sizes)
+    return count
+
+
+def unfold(record: str, sizes: tuple) -> tuple[str, tuple]:
+    return "?".join([record] * 5), sizes * 5
+
+
+lines = rows(data)
+record_and_sizes = []
+for line in lines:
+    record, size_strings = line.split()
+    sizes = tuple(int(size_string) for size_string in size_strings.split(","))
+    record_and_sizes.append((record, sizes))
+
+print(sum(count_variants(record, sizes) for record, sizes in record_and_sizes))
+
+unfolded_records_and_sizes = [
+    unfold(record, sizes) for record, sizes in record_and_sizes
+]
+print(
+    sum(count_variants(record, sizes) for record, sizes in unfolded_records_and_sizes)
+)
