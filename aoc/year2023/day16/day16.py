@@ -2,18 +2,19 @@ from collections import namedtuple
 from dataclasses import dataclass
 import dataclasses
 from aoc.utils import rows
+from aocd import data
 
 
-data = r""".|...\....
-|.-.\.....
-.....|-...
-........|.
-..........
-.........\
-..../.\\..
-.-.-/..|..
-.|....-|.\
-..//.|...."""
+# data = r""".|...\....
+# |.-.\.....
+# .....|-...
+# ........|.
+# ..........
+# .........\
+# ..../.\\..
+# .-.-/..|..
+# .|....-|.\
+# ..//.|...."""
 
 grid = rows(data)
 max_x = len(grid[0]) - 1
@@ -64,12 +65,21 @@ def print_beams(beams):
         print()
 
 
+def print_energized(energized):
+    for y, row in enumerate(grid):
+        for x, char in enumerate(row):
+            if (x, y) in energized:
+                print("#", end="")
+            else:
+                print(char, end="")
+        print()
+
+
 energized = set()
 existing_beams = set()
 while beams:
-    new_beams = []
     energized.update((beam.x, beam.y) for beam in beams)
-    for beam in beams:
+    for beam in list(beams):
         value = grid[beam.y][beam.x]
         if value == "/":
             beam.dx, beam.dy = beam.dy, beam.dx
@@ -82,18 +92,24 @@ while beams:
                 beam.dy = 0
                 beam.dx = -1
                 new_beam = dataclasses.replace(beam, dx=1)
-                new_beam.move()
-                new_beams = [new_beam]
+                beams.append(new_beam)
         elif value == "|":
             if beam.dx:
                 beam.dx = 0
                 beam.dy = -1
                 new_beam = dataclasses.replace(beam, dy=1)
-                new_beam.move()
-                new_beams = [new_beam]
+                beams.append(new_beam)
         beam.move()
-    beams = [beam for beam in beams + new_beams if beam.is_inside()]
-    print_beams(beams)
-    a = 1
+    # energized.update((beam.x, beam.y) for beam in beams)
+    beams = [beam for beam in beams if beam.is_inside()]
+    beams = [
+        beam
+        for beam in beams
+        if (beam.x, beam.y, beam.dx, beam.dy) not in existing_beams
+    ]
+    # energized.update((beam.x, beam.y) for beam in beams)
+    existing_beams.update((beam.x, beam.y, beam.dx, beam.dy) for beam in beams)
+
+print_energized(energized)
 
 print(len(energized))
