@@ -1,24 +1,25 @@
 from dataclasses import dataclass
 from aoc.utils import rows
 from aocd import data
+from heapq import heappush, heappop
 
 
-data = """2413432311323
-3215453535623
-3255245654254
-3446585845452
-4546657867536
-1438598798454
-4457876987766
-3637877979653
-4654967986887
-4564679986453
-1224686865563
-2546548887735
-4322674655533"""
+# data = """2413432311323
+# 3215453535623
+# 3255245654254
+# 3446585845452
+# 4546657867536
+# 1438598798454
+# 4457876987766
+# 3637877979653
+# 4654967986887
+# 4564679986453
+# 1224686865563
+# 2546548887735
+# 4322674655533"""
 
 
-# Idea: spawn new crucibles all the teime, collect the crucible properties
+# Idea: spawn new crucibles all the time, collect the crucible properties
 # in a set and stop a crucible if we have been there before but
 # with less or equal heat loss
 
@@ -48,6 +49,9 @@ class Crucible:
     last_direction: tuple[int, int] = (0, 0)
     last_last_direction: tuple[int, int] = (0, 0)
     heat_loss: int = 0
+
+    def __lt__(self, other):
+        return self.heat_loss < other.heat_loss
 
     def create_new_crucibles(self) -> list["Crucible"]:
         new_crucibles = []
@@ -80,29 +84,29 @@ class Crucible:
         )
 
 
-crucibles = [Crucible(0, 0)]
-previous_heat_losses = {}
+def get_min_heat_loss():
+    crucibles = []
+    heappush(crucibles, Crucible(0, 0))
+    previous_heat_losses = {}
 
-while crucibles:
-    new_crucibles = []
-    for crucible in crucibles:
+    i = 0
+    while crucibles:
+        crucible = heappop(crucibles)
+        i += 1
+        i %= 10000
+        if i == 0:
+            print(max_x + max_y - crucible.x - crucible.y)
         # Spawn up to three crucibles in the adjoining locations
         for new_crucible in crucible.create_new_crucibles():
+            if new_crucible.x == max_x and new_crucible.y == max_y:
+                return new_crucible.heat_loss
             if (
                 new_crucible.location() not in previous_heat_losses
                 or new_crucible.heat_loss
                 < previous_heat_losses[new_crucible.location()]
             ):
                 previous_heat_losses[new_crucible.location()] = new_crucible.heat_loss
-                new_crucibles.append(new_crucible)
-    crucibles = new_crucibles
-    # print(len(crucibles))
-    # print(crucibles[0].heat_loss, naive_heat_loss)
+                heappush(crucibles, new_crucible)
 
-heat_losses = {
-    value
-    for (x, y, _, _, _), value in previous_heat_losses.items()
-    if x == max_x and y == max_y
-}
 
-print(min(heat_losses))
+print(get_min_heat_loss())
