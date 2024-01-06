@@ -46,42 +46,41 @@ class Crucible:
     x: int
     y: int
     direction: tuple[int, int] = (1, 0)
-    last_direction: tuple[int, int] = (0, 0)
-    last_last_direction: tuple[int, int] = (0, 0)
     heat_loss: int = 0
+    blocks_since_last_turn: int = 0
+    max_blocks_without_turning: int = 2
 
     def __lt__(self, other):
         return self.heat_loss < other.heat_loss
 
     def create_new_crucibles(self) -> list["Crucible"]:
         new_crucibles = []
-        directions = [turn_left(*self.direction), turn_right(*self.direction)]
-        if not self.direction == self.last_direction == self.last_last_direction:
-            directions.append(self.direction)
-        for direction in directions:
+        directions_and_blocks_since_last_turn: list[tuple[tuple[int, int], int]] = [
+            (turn_left(*self.direction), 0),
+            (turn_right(*self.direction), 0),
+        ]
+        if self.blocks_since_last_turn < self.max_blocks_without_turning:
+            directions_and_blocks_since_last_turn.append(
+                (self.direction, self.blocks_since_last_turn + 1)
+            )
+        for direction, blocks_since_last_turn in directions_and_blocks_since_last_turn:
             x = self.x + direction[0]
             y = self.y + direction[1]
             if 0 <= x <= max_x and 0 <= y <= max_y:
                 new_crucibles.append(
                     self.__class__(
-                        x,
-                        y,
-                        direction,
-                        self.direction,
-                        self.last_direction,
-                        self.heat_loss + grid[(x, y)],
+                        x=x,
+                        y=y,
+                        direction=direction,
+                        heat_loss=self.heat_loss + grid[(x, y)],
+                        blocks_since_last_turn=blocks_since_last_turn,
+                        max_blocks_without_turning=self.max_blocks_without_turning,
                     )
                 )
         return new_crucibles
 
     def location(self):
-        return (
-            self.x,
-            self.y,
-            self.direction,
-            self.last_direction,
-            self.last_last_direction,
-        )
+        return (self.x, self.y, self.direction, self.blocks_since_last_turn)
 
 
 def get_min_heat_loss():
