@@ -1,22 +1,30 @@
 from dataclasses import dataclass
+
+from typing import Optional
 from aoc.utils import rows
 from aocd import data
 from heapq import heappush, heappop
 
 
-data = """2413432311323
-3215453535623
-3255245654254
-3446585845452
-4546657867536
-1438598798454
-4457876987766
-3637877979653
-4654967986887
-4564679986453
-1224686865563
-2546548887735
-4322674655533"""
+# data = """2413432311323
+# 3215453535623
+# 3255245654254
+# 3446585845452
+# 4546657867536
+# 1438598798454
+# 4457876987766
+# 3637877979653
+# 4654967986887
+# 4564679986453
+# 1224686865563
+# 2546548887735
+# 4322674655533"""
+
+# data = """111111111111
+# 999999999991
+# 999999999991
+# 999999999991
+# 999999999991"""
 
 
 # Idea: spawn new crucibles all the time, collect the crucible properties
@@ -61,8 +69,9 @@ class Crucible:
     direction: tuple[int, int] = (1, 0)
     heat_loss: int = 0
     blocks_since_last_turn: int = 0
-    max_blocks_without_turning: int = 2
+    max_blocks_without_turning: int = 3
     after_turn_minimum: int = 1
+    history: Optional[list[tuple[int, int]]] = None
 
     def __lt__(self, other):
         return self.heat_loss < other.heat_loss
@@ -72,8 +81,16 @@ class Crucible:
         directions_and_blocks_since_last_turn_and_minimum_move: list[
             tuple[tuple[int, int], int, int]
         ] = [
-            (turn_left(*self.direction), 0, self.after_turn_minimum),
-            (turn_right(*self.direction), 0, self.after_turn_minimum),
+            (
+                turn_left(*self.direction),
+                self.after_turn_minimum,
+                self.after_turn_minimum,
+            ),
+            (
+                turn_right(*self.direction),
+                self.after_turn_minimum,
+                self.after_turn_minimum,
+            ),
         ]
         if self.blocks_since_last_turn < self.max_blocks_without_turning:
             directions_and_blocks_since_last_turn_and_minimum_move.append(
@@ -95,6 +112,8 @@ class Crucible:
                         heat_loss=self.heat_loss + heat_loss(self.x, self.y, x, y),
                         blocks_since_last_turn=blocks_since_last_turn,
                         max_blocks_without_turning=self.max_blocks_without_turning,
+                        after_turn_minimum=self.after_turn_minimum,
+                        history=(self.history or []) + [(x, y)],
                     )
                 )
         return new_crucibles
@@ -126,6 +145,14 @@ def get_min_heat_loss(max_blocks_without_turning, after_turn_minimum):
         # Spawn up to three crucibles in the adjoining locations
         for new_crucible in crucible.create_new_crucibles():
             if new_crucible.x == max_x and new_crucible.y == max_y:
+                for y in range(max_y + 1):
+                    for x in range(max_x + 1):
+                        if (x, y) in new_crucible.history:
+                            print("#", end="")
+                        else:
+                            print(".", end="")
+                    print()
+                print(new_crucible.history)
                 return new_crucible.heat_loss
             if (
                 new_crucible.location() not in previous_heat_losses
@@ -136,5 +163,5 @@ def get_min_heat_loss(max_blocks_without_turning, after_turn_minimum):
                 heappush(crucibles, new_crucible)
 
 
-print(get_min_heat_loss(2, 1))
-print(get_min_heat_loss(9, 4))
+print(get_min_heat_loss(3, 1))
+print(get_min_heat_loss(10, 4))
