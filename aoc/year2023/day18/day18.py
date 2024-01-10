@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from aocd import data
 from aoc.utils import rows
+from tqdm import tqdm
 
 # data = """R 6 (#70c710)
 # D 5 (#0dc571)
@@ -67,7 +68,7 @@ def print_area(trenches):
     max_y = max(ys)
 
     area = 0
-    for y in range(min_y, max_y + 1):
+    for y in tqdm(range(min_y, max_y + 1)):
         overlapping_trenches = sorted(
             [trench for trench in trenches if trench.has_overlap(y)],
             key=lambda trench: trench.x1,
@@ -101,6 +102,35 @@ x = 0
 y = 0
 for row in rows(data):
     direction, steps, color = row.split(" ")
+    dx, dy = dxdy_from_direction[direction]
+    dx *= int(steps)
+    dy *= int(steps)
+    trenches.append(Trench(x, y, x + dx, y + dy))
+    # Prevent overlap between horizontal and vertical trenches:
+    # Reduce all vertical trench lengths by 2
+    if dy != 0:
+        trenches[-1].y1 += 1
+        trenches[-1].y2 -= 1
+    x += dx
+    y += dy
+
+print_area(trenches)
+
+trenches = []
+
+
+def steps_and_direction_from_color(color: str) -> tuple[int, str]:
+    steps_hex = color[2:7]
+    steps = int(steps_hex, 16)
+    direction_from_digit = {"0": "R", "1": "D", "2": "L", "3": "U"}
+    return steps, direction_from_digit[color[7]]
+
+
+x = 0
+y = 0
+for row in rows(data):
+    _, _, color = row.split(" ")
+    steps, direction = steps_and_direction_from_color(color)
     dx, dy = dxdy_from_direction[direction]
     dx *= int(steps)
     dy *= int(steps)
