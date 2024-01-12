@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from aocd import data
 from aoc.utils import rows
 from tqdm import tqdm
+from itertools import chain
 
 # data = """R 6 (#70c710)
 # D 5 (#0dc571)
@@ -17,7 +18,6 @@ from tqdm import tqdm
 # U 3 (#a77fa3)
 # L 2 (#015232)
 # U 2 (#7a21e3)"""
-
 
 dxdy_from_direction = {"U": (0, -1), "D": (0, 1), "L": (-1, 0), "R": (1, 0)}
 
@@ -64,11 +64,13 @@ def print_area(trenches):
         trench.set_changes_inside_to_outside(previous_trench, next_trench)
 
     ys = [trench.y1 for trench in trenches] + [trench.y2 for trench in trenches]
-    min_y = min(ys)
-    max_y = max(ys)
+    interesting_ys = sorted(set(ys + [y - 1 for y in ys]))
 
     area = 0
-    for y in tqdm(range(min_y, max_y + 1)):
+    # DEBUG
+    # interesting_ys = range(min(ys), max(ys) + 1)
+    previous_y = interesting_ys[0] - 1
+    for y in tqdm(interesting_ys):
         overlapping_trenches = sorted(
             [trench for trench in trenches if trench.has_overlap(y)],
             key=lambda trench: trench.x1,
@@ -83,16 +85,15 @@ def print_area(trenches):
                     x_start = trench.x1
                 else:
                     darea = trench.x2 - x_start + 1
-                    area += darea
-                    # print(darea)
+                    area += darea * (y - previous_y)
                 is_inside = not is_inside
             else:
                 if is_inside:
                     continue
                 else:
                     darea = trench.x2 - trench.x1 + 1
-                    area += darea
-                    # print(darea)
+                    area += darea * (y - previous_y)
+        previous_y = y
     print(area)
 
 
