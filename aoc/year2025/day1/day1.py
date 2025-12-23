@@ -21,20 +21,11 @@ def main():
     for rotation in rotations:
         direction = 1 if rotation.startswith("R") else -1
         steps = int(rotation[1:])
-        count += zero_count(direction, steps, value)
-        value += direction * steps
-        value %= 100
+        # A leftward rotation is a rightward rotation with a mirrored starting value
+        mirrored_value = (100 - value) % 100 if direction == -1 else value
+        count += (mirrored_value + steps) // 100
+        value = (value + direction * steps) % 100
     print(count)
-
-
-def zero_count(direction, steps, value):
-    count = 0
-    for _ in range(steps):
-        value += direction
-        value %= 100
-        if value == 0:
-            count += 1
-    return count
 
 
 if __name__ == "__main__":
